@@ -1,6 +1,7 @@
 # Roadmap: from 7/10 to 10/10
 
-A step-by-step plan for taking Policy Desk from a solid portfolio project to
+A step-by-step plan for taking the Agentic RAG Enterprise Knowledge Assistant
+from a solid portfolio project to
 an outstanding one for a GenAI engineer role. Work through the phases in
 order: each one makes the next more valuable.
 
@@ -43,12 +44,17 @@ optional: a project you can't explain counts against you.
 - [ ] **Read and explain the agent.**
   File: `backend/app/agents/rag_agent.py`.
   Done when: you can draw the LangGraph graph (model, tools, give_up),
-  explain why history is append-only, why tool results go back in one
-  message, and what happens at the 6-round cap.
-- [ ] **Read and explain citations for both providers.**
-  Files: `backend/app/rag/generator.py`, `backend/app/rag/openai_compat.py`.
-  Done when: you can explain the difference between Claude's built-in
-  citations and the `[n]` marker parsing, and the weaknesses of each.
+  explain MessagesState and the add_messages reducer, what ToolNode does
+  (parallel tool calls, errors returned to the model), how each of the four
+  tools works (including why calculate parses an AST instead of calling
+  eval), and what happens at the 6-round cap.
+- [ ] **Read and explain the LangChain layer and citations.**
+  Files: `backend/app/rag/llm.py`, `backend/app/rag/generator.py`.
+  Done when: you can explain how the chat model is chosen per provider,
+  what bind_tools does, how passages get citation keys like
+  `[leave_policy.txt#3]`, how parse_citations() turns them into segments,
+  why search results are stored as ToolMessage artifacts, and the
+  weaknesses of prompt-based citations (models can skip or invent keys).
 - [ ] **Run everything yourself** following `RUNNING.md`: tests, the
   retrieval eval, the app.
 - [ ] **Write a one-page architecture note** in your own words
@@ -61,10 +67,10 @@ The single most important phase. Without numbers, the project is a demo.
 - [ ] **Configure a model.** Copy `.env.example` to `.env` and fill in one
   option. Gemini or Groq have free tiers; Ollama is free and local.
   Effort: 15 minutes.
-- [ ] **Smoke test the app** with 5 real questions in Policy Desk. Fix
-  anything that breaks (this is the first real-model run; the
-  OpenAI-compatible path in `openai_compat.py` is the most likely to need
-  tweaks, for example models that skip citations).
+- [ ] **Smoke test the app** with 5 real questions in the web app. Fix
+  anything that breaks (this is the first real-model run; citation keys
+  and tool calling with small models are the most likely to need tweaks,
+  in `llm.py` and `SYSTEM_PROMPT` in `rag_agent.py`).
   Done when: answers show citation markers and margin notes.
 - [ ] **Run the answer eval pilot**, then the full set for both apps:
   ```powershell
@@ -82,7 +88,7 @@ The single most important phase. Without numbers, the project is a demo.
   Claude, Gemini Flash, a local Llama or Qwen) and record accuracy, cost
   per question and latency in a table.
 - [ ] **Publish the numbers** in the README Results section and in
-  `docs/BRD_Policy_Desk.docx` (section 7, Success metrics). Report the
+  `docs/BRD_Enterprise_Knowledge_Assistant.docx` (section 7, Success metrics). Report the
   confidence interval: with 31 questions, a few points of difference is
   noise, and saying so shows maturity.
 
@@ -117,7 +123,7 @@ What separates "it works on my laptop" from "I'd run this for a company".
 - [ ] **Tracing and cost tracking.** Record every request: searches made,
   model calls, tokens, cost and latency. Use Langfuse (open source,
   self-hostable), LangSmith or OpenTelemetry.
-  Files: wrap the model calls in `generator.py`, `openai_compat.py` and
+  Files: add a LangChain callback handler (or Langfuse's LangChain integration) in `llm.get_chat_model()` and
   `rag_agent.py` (`call_model`).
   Done when: you can open a dashboard and see any conversation's full
   trace and its cost.
@@ -190,14 +196,15 @@ What shows expertise rather than tutorial-following.
 
 ## Small fixes worth doing along the way
 
-These are known gaps (see `docs/FRD_Policy_Desk.docx`, section 10):
+These are known gaps (see `docs/FRD_Enterprise_Knowledge_Assistant.docx`, section 10):
 
-- [ ] Dark mode for Policy Desk (`frontend/src/styles.css`: add tokens under
+- [ ] Dark mode for the web app (`frontend/src/styles.css`: add tokens under
   `@media (prefers-color-scheme: dark)`).
 - [ ] A test for upload path safety (filenames like `../x.txt`), so FR-05
   in the FRD can move from Built to Tested.
-- [ ] Token-by-token streaming for OpenAI-compatible providers
-  (`openai_compat.agent_step`, currently sends the answer in one piece).
+- [ ] Structured citations: instead of parsing `[file#chunk]` keys from the
+  text, have the model return citations through structured output and
+  compare citation accuracy on the eval.
 - [ ] Make the keyword index incremental instead of rebuilding it on every
   upload (`vector_store._rebuild_keyword_index`).
 - [ ] Frontend tests (Vitest + React Testing Library) for citations,

@@ -1,7 +1,7 @@
-# Running Policy Desk
+# Running the Agentic RAG Enterprise Knowledge Assistant
 
 A step-by-step guide to installing, configuring and running this project:
-the FastAPI backend, the Policy Desk web app, Docker, sign-in, tests and
+the FastAPI backend, the web app, Docker, sign-in, tests and
 evaluations. Commands are for **Windows PowerShell**; macOS/Linux
 equivalents are noted where they differ.
 
@@ -92,12 +92,13 @@ ollama pull qwen2.5:7b
 
 How the options differ:
 
-- **Claude** uses the API's built-in citations, so every marker points at
-  the exact passage the model quoted, and answers stream word by word.
-- **The others** are asked to cite numbered passages like `[2]`; the app
-  turns those into the same markers and margin notes. This works well with
-  capable models; small local models sometimes skip citations or call the
-  search tool less reliably. Answers appear all at once instead of streaming.
+- Every provider runs through LangChain (`ChatAnthropic` for Claude,
+  `ChatOpenAI` for the rest), so all of them get the same tools, streaming
+  and citations.
+- The model cites passages by key, such as `[leave_policy.txt#3]`; the app
+  turns those into markers and margin notes. Capable models do this
+  reliably; small local models sometimes skip citations or use the tools
+  less well.
 - Model names change over time. If one is rejected, check the provider's
   current model list and update `LLM_MODEL`.
 
@@ -187,14 +188,14 @@ Build the image (includes the backend, the built web app and the embedding
 model):
 
 ```powershell
-docker build -t policy-desk .
+docker build -t knowledge-assistant .
 ```
 
 Run it with your `.env` settings and a volume that keeps documents,
 the search index and conversations:
 
 ```powershell
-docker run -p 8000:8000 --env-file .env -v policy-desk-data:/app/data policy-desk
+docker run -p 8000:8000 --env-file .env -v knowledge-assistant-data:/app/data knowledge-assistant
 ```
 
 Open **http://localhost:8000**.
@@ -253,8 +254,10 @@ whole set. Then run everything, plain RAG (`query`) and the agent (`chat`):
 ```
 
 Results land in `.claude/hillclimb/answers/`. If a run is interrupted, run
-the same command again: finished questions are skipped. With a non-Claude
-model, token usage and cost show as "not measured".
+the same command again: finished questions are skipped. Token usage is
+recorded for every provider; cost is calculated for Claude models and shows
+as "not measured" for others (add their prices to `PRICES` in
+`evaluation/run_answer_eval.py` to see it).
 
 ## 10. API reference
 
@@ -303,7 +306,7 @@ base, stop the server and delete `data/documents`, `data/vectorstore` and
 | `LLM request failed: ... 401` | The API key is wrong or expired. |
 | `LLM request failed: ... 404` / model not found | `LLM_MODEL` isn't a model your provider offers; check its model list. |
 | `LLM request failed: Connection error` | No internet, or with Ollama: start it (`ollama serve`) and check `LLM_BASE_URL`. |
-| Answers without citation markers (non-Claude models) | The model ignored the citation instructions; use a larger model. |
+| Answers without citation markers | The model ignored the citation instructions; use a larger model. |
 | First backend start is slow or fails offline | It downloads the embedding model once; connect to the internet for the first start. |
 | `npm ci` fails with "Missing ... from lock file" | Run `npm install --prefix frontend`; the project's `frontend/.npmrc` keeps installs consistent. |
 | Port 8000 or 5173 already in use | Add `--port 8001` to the backend command (and update `frontend/vite.config.js`), or stop the other program. |
