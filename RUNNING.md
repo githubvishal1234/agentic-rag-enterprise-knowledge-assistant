@@ -40,8 +40,8 @@ model. No GPU is needed.
 Get the code (skip if you already have the folder):
 
 ```powershell
-git clone https://github.com/githubvishal1234/agentic-rag-policy-desk.git
-cd agentic-rag-policy-desk
+git clone https://github.com/githubvishal1234/agentic-rag-enterprise-knowledge-assistant.git
+cd agentic-rag-enterprise-knowledge-assistant
 ```
 
 Create a Python virtual environment and install the backend:

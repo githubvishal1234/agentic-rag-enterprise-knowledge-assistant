@@ -1,6 +1,6 @@
 # Agentic RAG Enterprise Knowledge Assistant
 
-[![CI](https://github.com/githubvishal1234/agentic-rag-policy-desk/actions/workflows/ci.yml/badge.svg)](https://github.com/githubvishal1234/agentic-rag-policy-desk/actions/workflows/ci.yml)
+[![CI](https://github.com/githubvishal1234/agentic-rag-enterprise-knowledge-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/githubvishal1234/agentic-rag-enterprise-knowledge-assistant/actions/workflows/ci.yml)
 
 An agentic RAG assistant that answers questions over enterprise documents
 (policies, handbooks) with grounded, cited answers. A LangGraph agent decides
