@@ -116,9 +116,24 @@ holding the answer is in the top 4 search results for:
 | Hybrid (vector + BM25) | 24 / 26 |
 | Hybrid + stopword filtering | **26 / 26** |
 
-The answer-quality eval (facts correct, right source cited, no invented
-answers to unanswerable questions) runs through the real endpoints with any
-configured model: see [RUNNING.md, section 9](RUNNING.md#9-evaluations).
+**Answer quality, first pilot** (Groq, `openai/gpt-oss-120b`; 5 questions,
+one per category; a pass needs the right facts *and* the right source cited,
+or a decline for the unanswerable question):
+
+| App | Passed | Tokens / question (median) | Latency (median) |
+|---|---|---|---|
+| Plain RAG (`/query`) | 5 / 5 | 685 | 0.9 s |
+| Agent (`/chat`) | 5 / 5 | 1,661 | 1.4 s |
+
+The agent searched once per part on the multi-part question. On the
+unanswerable question it made 7 tool calls before correctly declining
+(12.9K tokens), which plain RAG did in one call. With 5 questions the 95%
+interval is 57-100%, so the full 31-question run is next: see
+[RUNNING.md, section 9](RUNNING.md#9-evaluations).
+
+The pilot also caught a real bug: gpt-oss writes citation keys in
+full-width brackets (`【leave_policy.txt#2】`), which the parser dropped; it
+now accepts both styles.
 
 ## Tests
 

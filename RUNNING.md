@@ -81,7 +81,7 @@ and fill in **one** option. Each option is already written out in
 | **A. Claude** (default, best citations) | Paid | https://platform.claude.com | `ANTHROPIC_API_KEY=sk-ant-...` |
 | **B. OpenAI** | Paid | https://platform.openai.com/api-keys | `LLM_PROVIDER=openai`, `LLM_MODEL=gpt-5-mini`, `LLM_API_KEY=sk-...` |
 | **C. Google Gemini** | Free tier | https://aistudio.google.com/apikey | `LLM_PROVIDER=openai`, `LLM_MODEL=gemini-2.5-flash`, `LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/`, `LLM_API_KEY=...` |
-| **D. Groq** | Free tier | https://console.groq.com/keys | `LLM_PROVIDER=openai`, `LLM_MODEL=llama-3.3-70b-versatile`, `LLM_BASE_URL=https://api.groq.com/openai/v1`, `LLM_API_KEY=gsk_...` |
+| **D. Groq** | Free tier | https://console.groq.com/keys | `LLM_PROVIDER=openai`, `LLM_MODEL=openai/gpt-oss-120b`, `LLM_BASE_URL=https://api.groq.com/openai/v1`, `LLM_API_KEY=gsk_...` |
 | **E. Ollama** (local) | Free | none, install from https://ollama.com | `LLM_PROVIDER=openai`, `LLM_MODEL=qwen2.5:7b`, `LLM_BASE_URL=http://localhost:11434/v1` |
 
 For Ollama, download the model once before starting the backend:

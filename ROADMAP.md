@@ -194,6 +194,18 @@ What shows expertise rather than tutorial-following.
 
 ---
 
+## Findings from the first real run (November 2026)
+
+- [x] gpt-oss cites with full-width brackets `【file#chunk】`; the parser now
+  accepts them (test in `backend/tests/test_llm.py`).
+- [ ] The agent over-investigates unanswerable questions: 7 tool calls and
+  12.9K tokens before declining "Can I bring my dog to the office?", versus
+  about 1.6K for answerable ones. Try a prompt rule (decline after two
+  searches find nothing relevant) and compare tokens and decline accuracy
+  on all 5 unanswerable eval questions.
+- [ ] Groq's free tier rate-limits parallel agent runs (HTTP 429). Run the
+  full eval with `--concurrency 1`, or add a short pause between cases.
+
 ## Small fixes worth doing along the way
 
 These are known gaps (see `docs/FRD_Enterprise_Knowledge_Assistant.docx`, section 10):

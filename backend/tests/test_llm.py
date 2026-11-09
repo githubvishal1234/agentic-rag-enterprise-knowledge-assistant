@@ -25,6 +25,18 @@ def test_parse_citations():
     ]
 
 
+def test_parse_citations_full_width_brackets():
+    # Real gpt-oss-120b output: full-width brackets and narrow no-break spaces.
+    answer, citations, segments = llm.parse_citations(
+        "You get up to 22 days 【leave.txt#0】. VPN too【it.pdf#3，leave.txt#0】.",
+        PASSAGES,
+    )
+
+    assert answer == "You get up to 22 days. VPN too."
+    assert [c["source"] for c in citations] == ["leave.txt", "it.pdf"]
+    assert [s["citations"] for s in segments] == [[0], [1, 0], []]
+
+
 def test_parse_citations_without_keys():
     assert llm.parse_citations("No sources.", PASSAGES) == (
         "No sources.", [], [{"text": "No sources.", "citations": []}]

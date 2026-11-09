@@ -599,8 +599,8 @@ function describeTools(calls) {
 // answer is complete; while it streams, hide them (and a half-arrived one).
 function withoutCitationKeys(text) {
   return text
-    .replace(/\s*\[[^[\]#]+#\d+(?:\s*,\s*[^[\]#,]+#\d+)*\]/g, "")
-    .replace(/\s*\[[^\]]*$/, "");
+    .replace(/\s*[[【][^[\]【】#]+#\d+(?:\s*[,，]\s*[^[\]【】#,，]+#\d+)*[\]】]/g, "")
+    .replace(/\s*[[【][^\]】]*$/, "");
 }
 
 // What the agent has done so far: its searches, then the answer as it's

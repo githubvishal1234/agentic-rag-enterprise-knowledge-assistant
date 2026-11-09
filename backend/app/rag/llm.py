@@ -30,8 +30,12 @@ CITATION_INSTRUCTIONS = (
     "only keys you were given."
 )
 
-# [file.txt#3] or [a.txt#1, b.pdf#4]
-CITATION = re.compile(r"\s*\[([^\[\]#]+#\d+(?:\s*,\s*[^\[\]#,]+#\d+)*)\]")
+# [file.txt#3] or [a.txt#1, b.pdf#4]. Some models (e.g. gpt-oss) write
+# their trained-in full-width brackets and comma instead: 【file.txt#3】.
+CITATION = re.compile(
+    r"\s*[\[【]([^\[\]【】#]+#\d+(?:\s*[,，]\s*[^\[\]【】#,，]+#\d+)*)[\]】]"
+)
+SEPARATOR = re.compile(r"[,，]")
 
 
 def provider() -> str:
@@ -111,7 +115,7 @@ def parse_citations(text: str, passages: dict[str, dict]) -> tuple[str, list[dic
     for match in CITATION.finditer(text):
         references = []
 
-        for key in (part.strip() for part in match.group(1).split(",")):
+        for key in (part.strip() for part in SEPARATOR.split(match.group(1))):
             chunk = passages.get(key)
             if chunk is None:
                 continue
