@@ -1,8 +1,4 @@
-from dataclasses import dataclass
-from typing import Any
+# Documents and chunks are LangChain Documents: page_content + metadata.
+from langchain_core.documents import Document
 
-
-@dataclass
-class Document:
-    text: str
-    metadata: dict[str, Any]
+__all__ = ["Document"]

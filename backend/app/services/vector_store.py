@@ -26,7 +26,7 @@ class FaissVectorStore:
         # ponytail: rebuilt from scratch on every add/load, fine for small
         # corpora; make BM25 incremental if ingestion gets slow.
         self.keyword_index = BM25(
-            [document.text for document in self.documents]
+            [document.page_content for document in self.documents]
         )
 
     
@@ -45,7 +45,7 @@ class FaissVectorStore:
 
         document_data = [
             {
-                "text": document.text,
+                "text": document.page_content,
                 "metadata": document.metadata,
             }
             for document in self.documents
@@ -75,7 +75,7 @@ class FaissVectorStore:
 
         loaded_documents = [
             Document(
-                text=item["text"],
+                page_content=item["text"],
                 metadata=item["metadata"],
             )
             for item in document_data
@@ -163,7 +163,7 @@ class FaissVectorStore:
 
     def _result(self, index: int, score: float) -> dict:
         return {
-            "text": self.documents[index].text,
+            "text": self.documents[index].page_content,
             "metadata": self.documents[index].metadata,
             "score": score,
         }

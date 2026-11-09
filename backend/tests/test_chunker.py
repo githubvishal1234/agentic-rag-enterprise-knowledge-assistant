@@ -14,7 +14,7 @@ def test_chunker(docs_dir):
     assert len(chunks) > 1, "Expected multiple chunks"
 
     for index, chunk in enumerate(chunks):
-        assert chunk.text.strip(), f"Chunk {index} is empty"
+        assert chunk.page_content.strip(), f"Chunk {index} is empty"
         assert "source" in chunk.metadata
         assert "file_type" in chunk.metadata
         assert "chunk_id" in chunk.metadata

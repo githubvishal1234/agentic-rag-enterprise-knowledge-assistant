@@ -6,7 +6,7 @@ from app.services.chunker import chunk_documents
 
 def make_document(text: str) -> Document:
     return Document(
-        text=text,
+        page_content=text,
         metadata={"source": "test.txt", "file_type": "txt"},
     )
 
@@ -21,7 +21,7 @@ def test_short_document():
     )
 
     assert len(chunks) == 1
-    assert chunks[0].text == document.text
+    assert chunks[0].page_content == document.page_content
 
 
 def test_empty_document():

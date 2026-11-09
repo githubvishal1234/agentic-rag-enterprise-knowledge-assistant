@@ -13,7 +13,7 @@ def load_txt(path: Path) -> list[Document]:
 
     return [
         Document(
-            text=text,
+            page_content=text,
             metadata={
                 "source": path.name,
                 "file_type": "txt",
@@ -35,7 +35,7 @@ def load_pdf(path: Path) -> list[Document]:
         if text.strip():
             documents.append(
                 Document(
-                    text=text,
+                    page_content=text,
                     metadata={
                         "source": path.name,
                         "file_type": "pdf",
@@ -62,7 +62,7 @@ def load_docx(path: Path) -> list[Document]:
 
     return [
         Document(
-            text=text,
+            page_content=text,
             metadata={
                 "source": path.name,
                 "file_type": "docx",

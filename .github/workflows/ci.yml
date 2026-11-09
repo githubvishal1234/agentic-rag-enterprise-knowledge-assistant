@@ -48,14 +48,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build image
-        run: docker build -t policy-desk .
+        run: docker build -t knowledge-assistant .
       - name: Start container and check it serves the API and the app
         run: |
-          docker run -d --name policy-desk -p 8000:8000 policy-desk
+          docker run -d --name knowledge-assistant -p 8000:8000 knowledge-assistant
           for i in $(seq 1 60); do curl -sf localhost:8000/health && break; sleep 2; done
           curl -sf localhost:8000/health | grep -q '"status":"healthy"'
-          curl -sf localhost:8000/ | grep -q "<title>Policy Desk</title>"
+          curl -sf localhost:8000/ | grep -q "<title>Enterprise Knowledge Assistant</title>"
           curl -sf localhost:8000/documents | grep -q '^\[\]$'
       - name: Container logs
         if: always()
-        run: docker logs policy-desk || true
+        run: docker logs knowledge-assistant || true

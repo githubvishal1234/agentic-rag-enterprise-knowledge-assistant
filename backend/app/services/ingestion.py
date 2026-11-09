@@ -22,7 +22,7 @@ def ingest_file(
     valid_documents = [
         document
         for document in documents
-        if document.text and document.text.strip()
+        if document.page_content and document.page_content.strip()
     ]
 
     if not valid_documents:

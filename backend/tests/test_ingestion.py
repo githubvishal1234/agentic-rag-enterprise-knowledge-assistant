@@ -21,7 +21,7 @@ def test_ingest_file(docs_dir, file_name):
     assert chunks, f"No chunks generated for {file_name}"
 
     for chunk in chunks:
-        assert chunk.text.strip()
+        assert chunk.page_content.strip()
         assert chunk.metadata["source"] == file_name
         assert "chunk_id" in chunk.metadata
         assert "start_index" in chunk.metadata

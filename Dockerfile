@@ -1,7 +1,7 @@
-# Policy Desk: FastAPI backend serving the built React frontend.
+# Agentic RAG Enterprise Knowledge Assistant: FastAPI backend serving the built React frontend.
 #
-#   docker build -t policy-desk .
-#   docker run -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... -v policy-desk-data:/app/data policy-desk
+#   docker build -t knowledge-assistant .
+#   docker run -p 8000:8000 -e ANTHROPIC_API_KEY=sk-ant-... -v knowledge-assistant-data:/app/data knowledge-assistant
 #
 # Then open http://localhost:8000. Uploaded documents, the index and
 # conversations live in the /app/data volume.

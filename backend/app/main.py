@@ -28,7 +28,8 @@ from starlette.middleware.sessions import SessionMiddleware
 from app.core import auth
 from app.core.auth import require_admin, require_user
 from app.agents.rag_agent import build_agent, conversation_turns, summarize_turn
-from app.rag.generator import generate_answer, has_credentials
+from app.rag.generator import generate_answer
+from app.rag.llm import has_credentials
 from app.services.embedding_service import EmbeddingService
 from app.services.ingestion import ingest_file
 from app.services.vector_store import FaissVectorStore
@@ -63,7 +64,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Enterprise Agentic RAG Platform",
+    title="Agentic RAG Enterprise Knowledge Assistant",
     version="0.1.0",
     description="Enterprise AI knowledge and data assistant",
     lifespan=lifespan,
@@ -99,7 +100,7 @@ class ChatRequest(BaseModel):
 def health_check():
     return {
         "status": "healthy",
-        "service": "enterprise-agentic-rag",
+        "service": "agentic-rag-enterprise-knowledge-assistant",
         "llm_configured": has_credentials(),
         "auth_required": auth.auth_required(),
     }
@@ -260,13 +261,12 @@ def chat_stream(request: ChatRequest):
                     yield event(chunk)
                 elif "model" in chunk:
                     for message in chunk["model"]["messages"]:
-                        for block in message["content"]:
-                            if block["type"] == "tool_use":
-                                yield event({
-                                    "type": "tool",
-                                    "name": block["name"],
-                                    "input": block["input"],
-                                })
+                        for call in message.tool_calls:
+                            yield event({
+                                "type": "tool",
+                                "name": call["name"],
+                                "input": call["args"],
+                            })
 
             messages = app.state.agent.get_state(config).values["messages"]
             yield event({

@@ -106,8 +106,9 @@ def main() -> None:
     search = store.similarity_search if args.method == "vector" else store.hybrid_search
 
     # Deterministic and fast, so every run starts clean instead of resuming.
+    # Only this runner's output is cleared; change.md / change.patch stay.
     variant_dir = FLOW_DIR / args.variant
-    shutil.rmtree(variant_dir, ignore_errors=True)
+    shutil.rmtree(variant_dir / "traces", ignore_errors=True)
     (variant_dir / "traces").mkdir(parents=True)
 
     grades = []

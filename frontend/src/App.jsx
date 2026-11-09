@@ -11,7 +11,7 @@ const listFormat = new Intl.ListFormat("en", { type: "conjunction" });
 
 // The current conversation's id, so a reload picks it back up. Storage can
 // be unavailable (private windows, blocked site data); then we just forget.
-const THREAD_KEY = "policy-desk-thread";
+const THREAD_KEY = "knowledge-assistant-thread";
 
 function savedThread() {
   try {
@@ -32,7 +32,7 @@ function saveThread(threadId) {
 
 // Conversations started in this browser, newest first: [{ id, title }].
 // Kept per browser, not on the server, because everyone shares a password.
-const HISTORY_KEY = "policy-desk-history";
+const HISTORY_KEY = "knowledge-assistant-history";
 
 function loadHistory() {
   try {
@@ -156,7 +156,7 @@ function SignIn({ onSignedIn }) {
   return (
     <main className="signin">
       <form className="signin-form" onSubmit={submit}>
-        <p className="brand">Policy Desk</p>
+        <p className="brand">Enterprise Knowledge Assistant</p>
         <h1>Sign in</h1>
         <p className="muted">Use the password your administrator gave you.</p>
 
@@ -408,7 +408,7 @@ function Sidebar({ documents, onUploaded, canEdit, account, history, currentThre
   return (
     <aside className="sidebar">
       <div>
-        <p className="brand">Policy Desk</p>
+        <p className="brand">Enterprise Knowledge Assistant</p>
         <p className="brand-note">Answers from your company's documents</p>
       </div>
 
@@ -572,28 +572,56 @@ function Turn({ turn, onRetry }) {
   );
 }
 
+// One plain sentence for the tools the agent used, e.g.
+// "Searched for “leave”, read leave_policy.txt and calculated 22 - 7".
+function describeTools(calls) {
+  const searches = calls
+    .filter((call) => call.name === "search_documents")
+    .map((call) => `“${call.input.query}”`);
+  const reads = [...new Set(calls
+    .filter((call) => call.name === "read_document")
+    .map((call) => call.input.source))];
+  const sums = calls
+    .filter((call) => call.name === "calculate")
+    .map((call) => call.input.expression);
+
+  const parts = [];
+  if (searches.length) parts.push(`searched for ${listFormat.format(searches)}`);
+  if (reads.length) parts.push(`read ${listFormat.format(reads)}`);
+  if (sums.length) parts.push(`calculated ${listFormat.format(sums)}`);
+  if (calls.some((call) => call.name === "list_documents")) parts.push("listed the documents");
+
+  const sentence = listFormat.format(parts);
+  return sentence && sentence[0].toUpperCase() + sentence.slice(1);
+}
+
+// Citation keys like [leave_policy.txt#3] are turned into markers once the
+// answer is complete; while it streams, hide them (and a half-arrived one).
+function withoutCitationKeys(text) {
+  return text
+    .replace(/\s*\[[^[\]#]+#\d+(?:\s*,\s*[^[\]#,]+#\d+)*\]/g, "")
+    .replace(/\s*\[[^\]]*$/, "");
+}
+
 // What the agent has done so far: its searches, then the answer as it's
 // written. Citations appear once the answer is complete.
 function PendingAnswer({ turn }) {
-  const searches = (turn.tools ?? [])
-    .filter((call) => call.name === "search_documents")
-    .map((call) => `“${call.input.query}”`);
+  const calls = (turn.tools ?? []).map((tool) => ({ name: tool.name, input: tool.input }));
+  const done = describeTools(calls);
 
   return (
     <>
-      {searches.length > 0 && (
-        <p className="searched">Searched for {listFormat.format(searches)}</p>
-      )}
+      {done && <p className="searched">{done}</p>}
 
       {turn.streamText ? (
         <div className="answer answer-layout no-sources">
           <div className="streaming">
-            <ReactMarkdown>{turn.streamText}</ReactMarkdown>
+            <ReactMarkdown>{withoutCitationKeys(turn.streamText)}</ReactMarkdown>
           </div>
         </div>
       ) : (
         <p className="pending" role="status">
-          <span>{searches.length ? "Reading what it found" : "Searching the documents"}</span>
+          <span>{calls.length ? "Reading what it found" : "Searching the documents"}</span>
         </p>
       )}
     </>
@@ -619,9 +647,7 @@ function withMarkers(segments) {
 function Answer({ id, result }) {
   const [active, setActive] = useState(null);
 
-  const searches = result.tool_calls
-    .filter((call) => call.name === "search_documents")
-    .map((call) => `“${call.input.query}”`);
+  const done = describeTools(result.tool_calls);
 
   const markdownComponents = {
     a({ href, children }) {
@@ -654,9 +680,7 @@ function Answer({ id, result }) {
 
   return (
     <>
-      {searches.length > 0 && (
-        <p className="searched">Searched for {listFormat.format(searches)}</p>
-      )}
+      {done && <p className="searched">{done}</p>}
 
       <div className={`answer-layout${result.citations.length ? "" : " no-sources"}`}>
         <div className="answer">

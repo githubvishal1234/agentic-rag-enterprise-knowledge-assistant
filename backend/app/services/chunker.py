@@ -27,22 +27,9 @@ def chunk_documents(
         add_start_index=True,
     )
 
-    langchain_documents = splitter.create_documents(
-        texts=[document.text for document in documents],
-        metadatas=[document.metadata for document in documents],
-    )
+    chunks = splitter.split_documents(documents)
 
-    chunks = []
-
-    for chunk_id, chunk in enumerate(langchain_documents):
-        metadata = chunk.metadata.copy()
-        metadata["chunk_id"] = chunk_id
-
-        chunks.append(
-            Document(
-                text=chunk.page_content,
-                metadata=metadata,
-            )
-        )
+    for chunk_id, chunk in enumerate(chunks):
+        chunk.metadata["chunk_id"] = chunk_id
 
     return chunks
