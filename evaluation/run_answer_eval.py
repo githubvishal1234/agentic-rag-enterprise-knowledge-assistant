@@ -66,14 +66,33 @@ JUDGE_INSTRUCTION = (
 )
 
 
+HYPHENS = re.compile(r"[-‐‑‒–—]")
+UNITS = re.compile(r"\b(minute|hour|day|week|month|year)s\b")
+
+
 def normalize(text: str) -> str:
-    return " ".join(text.lower().replace(",", "").replace("*", "").split())
+    """Compare facts loosely on form, strictly on content: case, commas,
+    markdown bold, any hyphen ("code-of-conduct", "3-month") and plural
+    time units ("3 months" vs "3-month mark") don't matter."""
+
+    text = HYPHENS.sub(" ", text.lower().replace(",", "").replace("*", ""))
+    return " ".join(UNITS.sub(r"\1", text).split())
+
+
+def contains_fact(answer: str, fact: str) -> bool:
+    """`fact` appears in `answer` starting on a word boundary, and ending on
+    one if it ends in a digit: "3 month" is not found in "13 month", "22" is
+    not found in "220", but "receipt" is found in "receipts"."""
+
+    fact = normalize(fact)
+    end = r"(?!\d)" if fact[-1:].isdigit() else ""
+    return re.search(rf"(?<!\w){re.escape(fact)}{end}", answer) is not None
 
 
 def grade_answerable(case: dict, output: dict) -> dict:
     answer = normalize(output["answer"])
     found = [
-        any(normalize(option) in answer for option in group)
+        any(contains_fact(answer, option) for option in group)
         for group in case["answer_facts"]
     ]
     cited = {citation["source"] for citation in output["citations"]}
@@ -315,6 +334,32 @@ def summarize(variant_dir: Path, wall_clock: float) -> None:
     )
 
 
+def regrade(variant_dir: Path) -> None:
+    """Recompute answerable grades from the stored answers and citations.
+    Judge verdicts (unanswerable cases) are kept as they were."""
+
+    cases = {
+        case["id"]: case
+        for case in map(json.loads, CASES_FILE.read_text(encoding="utf-8").splitlines())
+    }
+    path = variant_dir / "results.jsonl"
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+    for row in rows:
+        case = cases[row["prompt_id"]]
+        if row["status"] == "ok" and case["answer_facts"]:
+            output = {
+                "answer": row["meta"]["answer"],
+                "citations": [{"source": s} for s in row["meta"]["cited_sources"]],
+            }
+            before, row["grade"] = row["grade"], grade_answerable(case, output)
+            if before != row["grade"]:
+                print(f"  {row['prompt_id']}: {before} -> {row['grade']}")
+
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    summarize(variant_dir, 0)
+
+
 def main_cli() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--variant", required=True, help="baseline, v1, v2, ...")
@@ -322,10 +367,16 @@ def main_cli() -> None:
     parser.add_argument("--limit", type=int, help="pilot: run only N cases, spread across categories")
     parser.add_argument("--reps", type=int, default=1)
     parser.add_argument("--concurrency", type=int, default=4)
+    parser.add_argument("--regrade", action="store_true",
+                        help="re-grade stored answers after a grader change, without calling the model")
     args = parser.parse_args()
 
     if not re.fullmatch(r"baseline|v\d+", args.variant):
         parser.error("--variant must be 'baseline' or v<N>, or the report skips it")
+
+    if args.regrade:
+        regrade(FLOW_DIR / args.variant)
+        return
 
     if not llm.has_credentials():
         parser.error("no LLM configured: set ANTHROPIC_API_KEY or LLM_PROVIDER/LLM_MODEL (see RUNNING.md)")

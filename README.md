@@ -116,28 +116,37 @@ holding the answer is in the top 4 search results for:
 | Hybrid (vector + BM25) | 24 / 26 |
 | Hybrid + stopword filtering | **26 / 26** |
 
-**Answer quality, first pilot** (Groq, `openai/gpt-oss-120b`; 5 questions,
-one per category; a pass needs the right facts *and* the right source cited,
-or a decline for the unanswerable question):
+**Answer quality** (Groq, `openai/gpt-oss-120b`; all 31 questions: 26
+answerable across lookups, paraphrases, exact terms and multi-part
+questions, plus 5 the documents can't answer). A pass needs the right facts
+*and* a citation to the right source file, or a correct decline:
 
-| App | Passed | Tokens / question (median) | Latency (median) |
+| App | Passed | Tokens / question (median): answerable / unanswerable | Latency (median): answerable / unanswerable |
 |---|---|---|---|
-| Plain RAG (`/query`) | 5 / 5 | 685 | 0.9 s |
-| Agent (`/chat`) | 5 / 5 | 1,661 | 1.4 s |
+| Plain RAG (`/query`) | **31 / 31** | 684 / 682 | 0.9 s / 4.5 s |
+| Agent (`/chat`) | **31 / 31** | 1,595 / 12,849 | 8.8 s / 86 s |
 
-The agent searched once per part on the multi-part question. On the
-unanswerable question it made 7 tool calls before correctly declining
-(12.9K tokens), which plain RAG did in one call. With 5 questions the 95%
-interval is 57-100%, so the full 31-question run is next: see
-[RUNNING.md, section 9](RUNNING.md#9-evaluations).
+What the numbers say, and don't:
 
-The pilot also caught a real bug: gpt-oss writes citation keys in
-full-width brackets (`【leave_policy.txt#2】`), which the parser dropped; it
-now accepts both styles.
+- **Both apps answered every question correctly and declined all 5 it
+  shouldn't answer** (95% interval 89-100%). On this corpus the eval no
+  longer separates the agent from plain RAG on accuracy: it needs harder
+  questions and real documents (see ROADMAP.md).
+- **The difference is cost.** The agent searched once per part on
+  multi-part questions, but on unanswerable questions it made 7 tool calls
+  before declining, about 19x the tokens of plain RAG. The agent's latencies are inflated
+  by waits on Groq's free-tier rate limit (about 1.4 s per answerable
+  question when not rate-limited, in the pilot).
+- **Two fixes came from reading the transcripts.** gpt-oss writes citation
+  keys in full-width brackets (`【leave_policy.txt#2】`), which the parser
+  dropped (fixed, with a test). And the grader was too strict on wording
+  ("three‑month mark" vs "3 months", non-breaking hyphens) and too loose on
+  numbers ("13 months" contained "3 months"); both fixed and the stored
+  answers re-graded. The grader fix was made after seeing the outputs.
 
 ## Tests
 
-58 backend tests (scripted LLM responses, no key needed), including one
+59 backend tests (scripted LLM responses, no key needed), including one
 through LangChain's real `ChatOpenAI` class against a mocked API, plus a
 frontend build and a Docker build-and-run check on every push:
 

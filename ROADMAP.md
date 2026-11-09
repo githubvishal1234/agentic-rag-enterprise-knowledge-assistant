@@ -5,7 +5,7 @@ from a solid portfolio project to
 an outstanding one for a GenAI engineer role. Work through the phases in
 order: each one makes the next more valuable.
 
-**Where it stands (October 2026): 7/10.** Built and tested end to end:
+**Where it stood (October 2026): 7/10.** Built and tested end to end:
 ingestion, hybrid retrieval, a LangGraph agent with citations and
 streaming, a React frontend, sign-in, Docker, CI with 58 tests, a
 retrieval eval (26/26) and BRD/FRD documents. **Missing:** any run against
@@ -64,15 +64,15 @@ optional: a project you can't explain counts against you.
 
 The single most important phase. Without numbers, the project is a demo.
 
-- [ ] **Configure a model.** Copy `.env.example` to `.env` and fill in one
+- [x] **Configure a model.** Copy `.env.example` to `.env` and fill in one
   option. Gemini or Groq have free tiers; Ollama is free and local.
   Effort: 15 minutes.
-- [ ] **Smoke test the app** with 5 real questions in the web app. Fix
+- [x] **Smoke test the app** with 5 real questions in the web app. Fix
   anything that breaks (this is the first real-model run; citation keys
   and tool calling with small models are the most likely to need tweaks,
   in `llm.py` and `SYSTEM_PROMPT` in `rag_agent.py`).
   Done when: answers show citation markers and margin notes.
-- [ ] **Run the answer eval pilot**, then the full set for both apps:
+- [x] **Run the answer eval pilot**, then the full set for both apps:
   ```powershell
   .venv\Scripts\python evaluation\run_answer_eval.py --variant baseline --app query --limit 5
   .venv\Scripts\python evaluation\run_answer_eval.py --variant baseline --app query
@@ -80,14 +80,14 @@ The single most important phase. Without numbers, the project is a demo.
   ```
   Done when: you have pass rates with confidence intervals for plain RAG
   vs the agent, by question type.
-- [ ] **Read the failures**, not just the totals. Open the transcripts in
+- [x] **Read the failures**, not just the totals. Open the transcripts in
   `.claude/hillclimb/answers/*/traces/` for every failed case and sort them:
   retrieval missed, model ignored the passage, grader too strict, or bad
   test case. Fix grader or case bugs before trusting the numbers.
 - [ ] **Compare providers.** Run the same eval with 2-3 models (for example
   Claude, Gemini Flash, a local Llama or Qwen) and record accuracy, cost
   per question and latency in a table.
-- [ ] **Publish the numbers** in the README Results section and in
+- [x] **Publish the numbers** in the README Results section and in
   `docs/BRD_Enterprise_Knowledge_Assistant.docx` (section 7, Success metrics). Report the
   confidence interval: with 31 questions, a few points of difference is
   noise, and saying so shows maturity.
@@ -199,12 +199,18 @@ What shows expertise rather than tutorial-following.
 - [x] gpt-oss cites with full-width brackets `【file#chunk】`; the parser now
   accepts them (test in `backend/tests/test_llm.py`).
 - [ ] The agent over-investigates unanswerable questions: 7 tool calls and
-  12.9K tokens before declining "Can I bring my dog to the office?", versus
-  about 1.6K for answerable ones. Try a prompt rule (decline after two
+  about 12,849 tokens before declining each of the 5, versus about
+  1,595 for answerable ones (full 31-question run). Try a prompt rule (decline after two
   searches find nothing relevant) and compare tokens and decline accuracy
   on all 5 unanswerable eval questions.
 - [ ] Groq's free tier rate-limits parallel agent runs (HTTP 429). Run the
   full eval with `--concurrency 1`, or add a short pause between cases.
+
+- [x] Full answer eval: 31/31 for both apps after fixing the grader
+  (hyphens, plural units, and "13 months" wrongly matching "3 months").
+- [ ] The eval is saturated at 100%: add harder questions (conflicting
+  documents, questions needing two documents and a calculation, vague
+  questions) and real documents, so improvements become measurable.
 
 ## Small fixes worth doing along the way
 
