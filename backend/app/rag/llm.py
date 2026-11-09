@@ -30,10 +30,11 @@ CITATION_INSTRUCTIONS = (
     "only passage keys you were given; never cite tool names or calculations."
 )
 
-# [file.txt#3] or [a.txt#1, b.pdf#4]. Some models (e.g. gpt-oss) write
-# their trained-in full-width brackets and comma instead: 【file.txt#3】.
+# [file.txt#3] or [a.txt#1, b.pdf#4]. Models vary the format, so also
+# accept full-width brackets and comma (gpt-oss's trained-in style,
+# 【file.txt#3】) and spaces inside the brackets: [ file.txt#3 ].
 CITATION = re.compile(
-    r"\s*[\[【]([^\[\]【】#]+#\d+(?:\s*[,，]\s*[^\[\]【】#,，]+#\d+)*)[\]】]"
+    r"\s*[\[【]\s*([^\[\]【】#]+#\d+(?:\s*[,，]\s*[^\[\]【】#,，]+#\d+)*)\s*[\]】]"
 )
 SEPARATOR = re.compile(r"[,，]")
 

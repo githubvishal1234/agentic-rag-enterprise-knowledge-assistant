@@ -348,9 +348,18 @@ def regrade(variant_dir: Path) -> None:
     for row in rows:
         case = cases[row["prompt_id"]]
         if row["status"] == "ok" and case["answer_facts"]:
+            # Keys an older parser failed to recognise are still in the
+            # stored answer text; recover their sources with the current one.
+            leftover = {
+                key.strip().split("#")[0]
+                for match in llm.CITATION.finditer(row["meta"]["answer"])
+                for key in llm.SEPARATOR.split(match.group(1))
+            }
+            sources = sorted(set(row["meta"]["cited_sources"]) | leftover)
+            row["meta"]["cited_sources"] = sources
             output = {
-                "answer": row["meta"]["answer"],
-                "citations": [{"source": s} for s in row["meta"]["cited_sources"]],
+                "answer": llm.CITATION.sub("", row["meta"]["answer"]),
+                "citations": [{"source": s} for s in sources],
             }
             before, row["grade"] = row["grade"], grade_answerable(case, output)
             if before != row["grade"]:

@@ -200,11 +200,17 @@ What shows expertise rather than tutorial-following.
   accepts them (test in `backend/tests/test_llm.py`).
 - [ ] The agent over-investigates unanswerable questions: 7 tool calls and
   about 12,849 tokens before declining each of the 5, versus about
-  1,595 for answerable ones (full 31-question run). Try a prompt rule (decline after two
-  searches find nothing relevant) and compare tokens and decline accuracy
-  on all 5 unanswerable eval questions.
-- [ ] Groq's free tier rate-limits parallel agent runs (HTTP 429). Run the
-  full eval with `--concurrency 1`, or add a short pause between cases.
+  1,595 for answerable ones (full 31-question run). Tried a prompt rule
+  (v2: "stop after two differently worded searches find nothing"): **no
+  effect**. gpt-oss ignored it (7 tool calls, 14.2K tokens, and it hit the
+  round cap), so it was reverted; see
+  `.claude/hillclimb/answers/v2/change.md`. Next: enforce it in code, e.g.
+  route to the answer step after N search rounds that produced no cited
+  passage, and re-measure all 5 unanswerable questions (needs a fresh Groq
+  daily token budget).
+- [ ] Groq's free tier limits tokens per minute *and per day*: one full
+  agent eval (~90K tokens) plus testing used the daily budget. Run evals
+  with `--concurrency 1`, one variant per day, or use a paid tier.
 
 - [x] Full answer eval: 31/31 for both apps after fixing the grader
   (hyphens, plural units, and "13 months" wrongly matching "3 months").

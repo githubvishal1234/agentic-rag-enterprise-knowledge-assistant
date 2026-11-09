@@ -37,6 +37,16 @@ def test_parse_citations_full_width_brackets():
     assert [s["citations"] for s in segments] == [[0], [1, 0], []]
 
 
+def test_parse_citations_spaces_inside_brackets():
+    # Real gpt-oss output: "...and then deleted [ data_retention_policy.txt#0 ]."
+    answer, citations, _ = llm.parse_citations(
+        "Kept for six months [ leave.txt#0 ]. And [ it.pdf#3 , leave.txt#0 ].", PASSAGES
+    )
+
+    assert answer == "Kept for six months. And."
+    assert [c["source"] for c in citations] == ["leave.txt", "it.pdf"]
+
+
 def test_parse_citations_drops_cited_tool_names():
     # Real gpt-oss output: it "cited" the calculator like a document.
     answer, citations, _ = llm.parse_citations(
