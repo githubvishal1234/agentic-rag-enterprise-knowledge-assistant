@@ -591,15 +591,19 @@ function describeTools(calls) {
   if (sums.length) parts.push(`calculated ${listFormat.format(sums)}`);
   if (calls.some((call) => call.name === "list_documents")) parts.push("listed the documents");
 
-  const sentence = listFormat.format(parts);
+  // "Searched for “a” and “b”, then calculated 22 - 7": steps in order,
+  // without a second "and" inside a part that already has one.
+  const sentence = parts.join(", then ");
   return sentence && sentence[0].toUpperCase() + sentence.slice(1);
 }
 
 // Citation keys like [leave_policy.txt#3] are turned into markers once the
-// answer is complete; while it streams, hide them (and a half-arrived one).
+// answer is complete; while it streams, hide them (and a half-arrived one),
+// along with tools the model sometimes "cites" like documents: [calculate].
 function withoutCitationKeys(text) {
   return text
     .replace(/\s*[[【][^[\]【】#]+#\d+(?:\s*[,，]\s*[^[\]【】#,，]+#\d+)*[\]】]/g, "")
+    .replace(/\s*[[【](?:calculate|search_documents|read_document|list_documents)[\]】]/g, "")
     .replace(/\s*[[【][^\]】]*$/, "");
 }
 

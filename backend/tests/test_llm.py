@@ -37,6 +37,17 @@ def test_parse_citations_full_width_brackets():
     assert [s["citations"] for s in segments] == [[0], [1, 0], []]
 
 
+def test_parse_citations_drops_cited_tool_names():
+    # Real gpt-oss output: it "cited" the calculator like a document.
+    answer, citations, _ = llm.parse_citations(
+        "You have 15 days left [leave.txt#0][calculate]. Also 【search_documents】 done.",
+        PASSAGES,
+    )
+
+    assert answer == "You have 15 days left. Also done."
+    assert [c["source"] for c in citations] == ["leave.txt"]
+
+
 def test_parse_citations_without_keys():
     assert llm.parse_citations("No sources.", PASSAGES) == (
         "No sources.", [], [{"text": "No sources.", "citations": []}]

@@ -27,7 +27,7 @@ CITATION_INSTRUCTIONS = (
     " Each passage is labelled with a citation key in square brackets, for "
     "example [leave_policy.txt#3]. After each sentence that uses a passage, "
     "add its key exactly as written, for example [leave_policy.txt#3]. Cite "
-    "only keys you were given."
+    "only passage keys you were given; never cite tool names or calculations."
 )
 
 # [file.txt#3] or [a.txt#1, b.pdf#4]. Some models (e.g. gpt-oss) write
@@ -36,6 +36,12 @@ CITATION = re.compile(
     r"\s*[\[【]([^\[\]【】#]+#\d+(?:\s*[,，]\s*[^\[\]【】#,，]+#\d+)*)[\]】]"
 )
 SEPARATOR = re.compile(r"[,，]")
+
+# Models sometimes "cite" a tool like a document: [calculate]. Not a source,
+# so it is removed from the answer.
+TOOL_CITATION = re.compile(
+    r"\s*[\[【](?:calculate|search_documents|read_document|list_documents)[\]】]"
+)
 
 
 def provider() -> str:
@@ -108,6 +114,7 @@ def parse_citations(text: str, passages: dict[str, dict]) -> tuple[str, list[dic
     Unknown keys are dropped.
     """
 
+    text = TOOL_CITATION.sub("", text)
     citations: list[dict] = []
     segments: list[dict] = []
     position = 0
